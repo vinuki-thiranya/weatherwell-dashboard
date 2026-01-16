@@ -1,0 +1,25 @@
+# Ignore editor history and backup files
+.history/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Backend .NET ignore rules
+backend/[Dd]ebug/
+backend/[Rr]elease/
+backend/[Bb]in/
+backend/[Oo]bj/
+backend/*.user
+backend/*.suo
+backend/appsettings.Development.json
+backend/*.csproj.user
+
+# Frontend ignore rules (for future)
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# API Keys
+backend/appsettings.*.json
+!backend/appsettings.json
