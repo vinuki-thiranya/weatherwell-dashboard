@@ -1,6 +1,6 @@
 namespace WeatherWell.Models;
 
-// This is what we SEND to the frontend
+// Weather data result for a city
 public class CityWeatherResult
 {
     public int CityId { get; set; }
