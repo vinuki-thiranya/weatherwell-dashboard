@@ -19,6 +19,13 @@ public class CityWeatherResult
 // City from cities.json
 public class City
 {
-    public int CityCode { get; set; }
+    public string CityCode { get; set; }
     public string CityName { get; set; }
+    public string Temp { get; set; }
+    public string Status { get; set; }
+}
+
+public class CitiesData
+{
+    public List<City> List { get; set; } = new();
 }

@@ -1,16 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WeatherWell.Services;
 
 namespace WeatherWell.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class WeatherController : ControllerBase
 {
+
     private readonly IWeatherService _weatherService;
 
     public WeatherController(IWeatherService weatherService)
     {
+
         _weatherService = weatherService;
     }
 
@@ -28,9 +32,17 @@ public class WeatherController : ControllerBase
         }
     }
 
+
     [HttpGet("debug/cache-status")]
     public IActionResult GetCacheStatus()
     {
         return Ok(new { status = _weatherService.GetLastCacheStatus() });
     }
+
+
+
+
+
+
+
 }

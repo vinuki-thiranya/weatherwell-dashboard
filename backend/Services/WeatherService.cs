@@ -21,7 +21,24 @@ public class WeatherService : IWeatherService
         _configuration = configuration;
         _comfortService = comfortService;
         _cache = cache;
-        _apiKey = _configuration["OpenWeatherMap:ApiKey"] ?? "demo-key";
+        _apiKey = Environment.GetEnvironmentVariable("OPENWEATHER_API_KEY") ?? "demo-key";
+        LoadCitiesFromFile();
+    }
+
+    private void LoadCitiesFromFile()
+    {
+        try
+        {
+            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "cities.json");
+            var jsonContent = File.ReadAllText(jsonPath);
+            var citiesData = JsonSerializer.Deserialize<CitiesData>(jsonContent);
+            _cities = citiesData?.List ?? new List<City>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading cities.json: {ex.Message}");
+            _cities = new List<City>();
+        }
     }
 
     public string GetLastCacheStatus() => LastCacheStatus;
@@ -39,21 +56,24 @@ public class WeatherService : IWeatherService
         // fetching logic remains same 
         // (the actual fetch logic inside the method below)
         
-        foreach (var cityCode in _cityCodes)
+        foreach (var city in _cities)
         {
             try
             {
-                var weatherData = await FetchWeatherDataAsync(cityCode);
-                if (weatherData != null)
+                if (int.TryParse(city.CityCode, out int cityCode))
                 {
-                    var result = MapToResult(weatherData);
-                    result.ComfortScore = _comfortService.CalculateScore(result);
-                    results.Add(result);
+                    var weatherData = await FetchWeatherDataAsync(cityCode);
+                    if (weatherData != null)
+                    {
+                        var result = MapToResult(weatherData);
+                        result.ComfortScore = _comfortService.CalculateScore(result);
+                        results.Add(result);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching weather for city {cityCode}: {ex.Message}");
+                Console.WriteLine($"Error fetching weather for city {city.CityName}: {ex.Message}");
             }
         }
         
@@ -82,10 +102,12 @@ public class WeatherService : IWeatherService
         return null;
     }
 
+
     private CityWeatherResult MapToResult(WeatherResponse weather)
     {
         return new CityWeatherResult
         {
+
             CityId = weather.CityId,
             CityName = weather.CityName,
             Temperature = Math.Round(weather.Main.Temperature, 1),
@@ -98,6 +120,7 @@ public class WeatherService : IWeatherService
             WeatherDescription = weather.Weather.FirstOrDefault()?.Description ?? "Unknown",
             ComfortScore = 0, // Will calculate this next
             Rank = 0          // Will calculate this after sorting
+       
         };
     }
 }
