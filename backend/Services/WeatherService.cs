@@ -11,6 +11,7 @@ public class WeatherService : IWeatherService
     private readonly IComfortService _comfortService;
     private readonly IMemoryCache _cache;
     private readonly string _apiKey;
+    private List<City> _cities = new();
     private const string CacheKey = "WeatherResults";
     
     public string LastCacheStatus { get; private set; } = "NONE";
