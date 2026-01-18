@@ -27,4 +27,10 @@ public class WeatherController : ControllerBase
             return StatusCode(500, new { error = "Failed to fetch weather data", details = ex.Message });
         }
     }
+
+    [HttpGet("debug/cache-status")]
+    public IActionResult GetCacheStatus()
+    {
+        return Ok(new { status = _weatherService.GetLastCacheStatus() });
+    }
 }

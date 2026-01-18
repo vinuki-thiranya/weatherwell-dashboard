@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using WeatherWell.Models;
 
 namespace WeatherWell.Services;
@@ -8,35 +9,36 @@ public class WeatherService : IWeatherService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly IComfortService _comfortService;
+    private readonly IMemoryCache _cache;
     private readonly string _apiKey;
+    private const string CacheKey = "WeatherResults";
     
-    // Sample city codes - replace later
-    private readonly List<int> _cityCodes = new List<int>
-    {
-        2172797, // Cairns, Australia
-        1835848, // Seoul, South Korea  
-        2988507, // Paris, France
-        2643743, // London, UK
-        5128581, // New York, US
-        1850147, // Tokyo, Japan
-        1273294, // Delhi, India
-        3451190, // Rio de Janeiro, Brazil
-        2147714, // Sydney, Australia
-        993800   // Johannesburg, South Africa
-    };
+    public string LastCacheStatus { get; private set; } = "NONE";
 
-    public WeatherService(HttpClient httpClient, IConfiguration configuration, IComfortService comfortService)
+    public WeatherService(HttpClient httpClient, IConfiguration configuration, IComfortService comfortService, IMemoryCache cache)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _comfortService = comfortService;
+        _cache = cache;
         _apiKey = _configuration["OpenWeatherMap:ApiKey"] ?? "demo-key";
     }
 
+    public string GetLastCacheStatus() => LastCacheStatus;
+
     public async Task<List<CityWeatherResult>> GetAllCitiesWeatherAsync()
     {
-        var results = new List<CityWeatherResult>();
+        if (_cache.TryGetValue(CacheKey, out List<CityWeatherResult>? cachedResults))
+        {
+            LastCacheStatus = "HIT";
+            return cachedResults!;
+        }
 
+        LastCacheStatus = "MISS";
+        var results = new List<CityWeatherResult>();
+        // fetching logic remains same 
+        // (the actual fetch logic inside the method below)
+        
         foreach (var cityCode in _cityCodes)
         {
             try
@@ -51,13 +53,17 @@ public class WeatherService : IWeatherService
             }
             catch (Exception ex)
             {
-                // Log error but continue with other cities
                 Console.WriteLine($"Error fetching weather for city {cityCode}: {ex.Message}");
             }
         }
-
         
         _comfortService.RankCities(results);
+
+        var cacheOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+
+        _cache.Set(CacheKey, results, cacheOptions);
+
         return results;
     }
 
