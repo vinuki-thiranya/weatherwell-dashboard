@@ -5,9 +5,9 @@ namespace WeatherWell.Services;
 
 public class WeatherService : IWeatherService
 {
-
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
+    private readonly IComfortService _comfortService;
     private readonly string _apiKey;
     
     // Sample city codes - replace later
@@ -25,10 +25,11 @@ public class WeatherService : IWeatherService
         993800   // Johannesburg, South Africa
     };
 
-    public WeatherService(HttpClient httpClient, IConfiguration configuration)
+    public WeatherService(HttpClient httpClient, IConfiguration configuration, IComfortService comfortService)
     {
         _httpClient = httpClient;
         _configuration = configuration;
+        _comfortService = comfortService;
         _apiKey = _configuration["OpenWeatherMap:ApiKey"] ?? "demo-key";
     }
 
@@ -44,6 +45,7 @@ public class WeatherService : IWeatherService
                 if (weatherData != null)
                 {
                     var result = MapToResult(weatherData);
+                    result.ComfortScore = _comfortService.CalculateScore(result);
                     results.Add(result);
                 }
             }
@@ -54,7 +56,8 @@ public class WeatherService : IWeatherService
             }
         }
 
-
+        
+        _comfortService.RankCities(results);
         return results;
     }
 
