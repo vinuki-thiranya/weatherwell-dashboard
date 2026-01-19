@@ -11,10 +11,15 @@ public class WeatherService : IWeatherService
     private readonly IComfortService _comfortService;
     private readonly IMemoryCache _cache;
     private readonly string _apiKey;
-    private List<City> _cities = new();
+    private readonly List<int> _cityCodes;
     private const string CacheKey = "WeatherResults";
+    private const string CacheStatusKey = "WeatherCacheStatus";
     
-    public string LastCacheStatus { get; private set; } = "NONE";
+    public string LastCacheStatus 
+    { 
+        get => _cache.Get<string>(CacheStatusKey) ?? "NONE";
+        private set => _cache.Set(CacheStatusKey, value);
+    }
 
     public WeatherService(HttpClient httpClient, IConfiguration configuration, IComfortService comfortService, IMemoryCache cache)
     {
@@ -23,22 +28,23 @@ public class WeatherService : IWeatherService
         _comfortService = comfortService;
         _cache = cache;
         _apiKey = Environment.GetEnvironmentVariable("OPENWEATHER_API_KEY") ?? "demo-key";
-        LoadCitiesFromFile();
+        _cityCodes = LoadCityCodes();
     }
 
-    private void LoadCitiesFromFile()
+    private List<int> LoadCityCodes()
     {
         try
         {
             var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "cities.json");
+            if (!File.Exists(jsonPath)) return new List<int>();
+            
             var jsonContent = File.ReadAllText(jsonPath);
             var citiesData = JsonSerializer.Deserialize<CitiesData>(jsonContent);
-            _cities = citiesData?.List ?? new List<City>();
+            return citiesData?.List?.Select(c => int.Parse(c.CityCode)).ToList() ?? new List<int>();
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Error loading cities.json: {ex.Message}");
-            _cities = new List<City>();
+            return new List<int>();
         }
     }
 
@@ -46,35 +52,35 @@ public class WeatherService : IWeatherService
 
     public async Task<List<CityWeatherResult>> GetAllCitiesWeatherAsync()
     {
+        // Check cache first
         if (_cache.TryGetValue(CacheKey, out List<CityWeatherResult>? cachedResults))
         {
-            LastCacheStatus = "HIT";
+            // Set status and return cached data
+            _cache.Set(CacheStatusKey, "HIT", TimeSpan.FromMinutes(10));
             return cachedResults!;
         }
 
-        LastCacheStatus = "MISS";
+        // Cache miss - fetch new data
+        _cache.Set(CacheStatusKey, "MISS", TimeSpan.FromMinutes(10));
         var results = new List<CityWeatherResult>();
         // fetching logic remains same 
         // (the actual fetch logic inside the method below)
         
-        foreach (var city in _cities)
+        foreach (var cityCode in _cityCodes)
         {
             try
             {
-                if (int.TryParse(city.CityCode, out int cityCode))
+                var weatherData = await FetchWeatherDataAsync(cityCode);
+                if (weatherData != null)
                 {
-                    var weatherData = await FetchWeatherDataAsync(cityCode);
-                    if (weatherData != null)
-                    {
-                        var result = MapToResult(weatherData);
-                        result.ComfortScore = _comfortService.CalculateScore(result);
-                        results.Add(result);
-                    }
+                    var result = MapToResult(weatherData);
+                    result.ComfortScore = _comfortService.CalculateScore(result);
+                    results.Add(result);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching weather for city {city.CityName}: {ex.Message}");
+                Console.WriteLine($"Error fetching weather for city {cityCode}: {ex.Message}");
             }
         }
         

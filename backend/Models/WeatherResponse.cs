@@ -6,19 +6,19 @@ namespace WeatherWell.Models;
 public class WeatherResponse
 {
     [JsonPropertyName("coord")]
-    public required Coordinates Coordinates { get; set; }
+    public Coordinates Coordinates { get; set; }
 
     [JsonPropertyName("weather")]
-    public required List<Weather> Weather { get; set; }
+    public List<Weather> Weather { get; set; }
 
     [JsonPropertyName("main")]
-    public required MainWeatherData Main { get; set; }
+    public MainWeatherData Main { get; set; }
 
     [JsonPropertyName("wind")]
-    public required Wind Wind { get; set; }
+    public Wind Wind { get; set; }
 
     [JsonPropertyName("clouds")]
-    public required Clouds Clouds { get; set; }
+    public Clouds Clouds { get; set; }
 
     [JsonPropertyName("visibility")]
     public int Visibility { get; set; }
@@ -27,7 +27,7 @@ public class WeatherResponse
     public int CityId { get; set; }
 
     [JsonPropertyName("name")]
-    public required string CityName { get; set; }
+    public string CityName { get; set; }
 }
 
 // Latitude and Longitude
@@ -44,10 +44,10 @@ public class Coordinates
 public class Weather
 {
     [JsonPropertyName("main")]
-    public required string Main { get; set; }
+    public string Main { get; set; }
 
     [JsonPropertyName("description")]
-    public required string Description { get; set; }
+    public string Description { get; set; }
 }
 
 // Temperature, Humidity, Pressure
