@@ -37,7 +37,12 @@ public class WeatherService : IWeatherService
     {
         try
         {
-            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "cities.json");
+            var jsonPath = Path.Combine(AppContext.BaseDirectory, "cities.json");
+            if (!File.Exists(jsonPath))
+            {
+                jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "cities.json");
+            }
+            
             if (!File.Exists(jsonPath)) return new List<int>();
             
             var jsonContent = File.ReadAllText(jsonPath);

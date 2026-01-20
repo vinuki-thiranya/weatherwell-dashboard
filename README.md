@@ -208,13 +208,10 @@ Use this to verify cache behavior during testing
    - Allowed Callback URLs: http://localhost:5173
    - Allowed Logout URLs: http://localhost:5173
 
-2. Create Machine-to-Machine app for email verification:
+2. Create Machine-to-Machine app for resending email verification.:
    - Name: WeatherWell Backend
    - Scopes: read:users, create:user_tickets
-
-3. Test user:
-   - Email: test@example.com
-   - Password: [your test password]
+   
 
 ## API Endpoints
 

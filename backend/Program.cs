@@ -17,14 +17,13 @@ builder.Services.AddScoped<IAuth0Service, Auth0Service>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins(
-                        "http://localhost:5173",
-                        "http://localhost:5174",
-                        "https://weatherwell-dashboard.vercel.app",
-                        "https://*.vercel.app"
-                    )
+        policy => policy.SetIsOriginAllowed(origin => 
+                        origin.EndsWith(".vercel.app") || 
+                        origin.Equals("http://localhost:5173") || 
+                        origin.Equals("http://localhost:5174"))
                         .AllowAnyMethod()
-                        .AllowAnyHeader());
+                        .AllowAnyHeader()
+                        .AllowCredentials());
 });
 
 builder.Services.AddEndpointsApiExplorer();
