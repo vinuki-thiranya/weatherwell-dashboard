@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 import type { CityWeatherResult } from './types';
-import WeatherCard from './components/WeatherCard';
 import TemperatureChart from './components/TemperatureChart';
-import { CloudSun, RefreshCw, LogIn, LogOut, Filter, SortAsc, BarChart3, Sun, Moon, Cloud, Eye, Gauge, AlertCircle, ArrowRight, Shield, BarChart } from 'lucide-react';
+import { CloudSun, RefreshCw, LogOut, Filter, SortAsc, BarChart3, Sun, Moon, Cloud, Eye, Gauge, AlertCircle, ArrowRight } from 'lucide-react';
 
 type SortOption = 'rank' | 'temperature' | 'comfort' | 'humidity' | 'name';
 type FilterOption = 'all' | 'excellent' | 'good' | 'moderate' | 'poor';
@@ -68,43 +67,6 @@ function App() {
 
   const cancelLogout = () => {
     setShowLogoutConfirm(false);
-  };
-
-  const resendVerificationEmail = async () => {
-    if (!user?.email) {
-      console.error('No user email available');
-      return;
-    }
-    
-    console.log('Starting resend verification for:', user.email);
-    setResendingEmail(true);
-    
-    try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-      console.log('Making request to:', `${baseUrl}/auth/resend-verification`);
-      
-      const response = await axios.post(`${baseUrl}/auth/resend-verification`, {
-        email: user.email
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('Resend response:', response);
-      
-      if (response.status === 200) {
-        alert("Verification email sent successfully! Please check your inbox.");
-      } else {
-        alert("Failed to send verification email. Please try again later.");
-      }
-    } catch (error: any) {
-      console.error('Resend verification error:', error);
-      console.error('Error response:', error.response?.data);
-      alert(`Failed to send verification email: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setResendingEmail(false);
-    }
   };
 
   const resendVerificationEmailWithEmail = async (email: string) => {
