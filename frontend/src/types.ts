@@ -1,4 +1,4 @@
-export interface CityWeatherResult {
+export type CityWeatherResult = {
   cityId: number;
   cityName: string;
   temperature: number;
@@ -10,4 +10,4 @@ export interface CityWeatherResult {
   weatherDescription: string;
   comfortScore: number;
   rank: number;
-}
+};

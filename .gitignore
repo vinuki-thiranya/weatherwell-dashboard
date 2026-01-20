@@ -1,3 +1,10 @@
+# Environment Variables
+.env
+.env.local
+backend/.env
+frontend/.env
+.env.*.local
+
 # Ignore editor history and backup files
 .history/
 .vscode/
@@ -15,11 +22,8 @@ backend/*.suo
 backend/appsettings.Development.json
 backend/*.csproj.user
 
-# Frontend ignore rules (for future)
+# Frontend ignore rules
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
-
-# API Keys
-backend/appsettings.*.json
-!backend/appsettings.json
+frontend/build/

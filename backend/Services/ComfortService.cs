@@ -11,49 +11,64 @@ public class ComfortService : IComfortService
 
     public double CalculateScore(CityWeatherResult weather)
     {
-        // 1. TEMPERATURE: 35 points, optimal 22°C
+        // 1. TEMPERATURE: 40 points (increased from 35), optimal 22°C
+        // Temperature is the DOMINANT comfort factor
         double tempDeviation = Math.Abs(weather.Temperature - OptimalTemp);
         double tempScore;
         if (tempDeviation <= 5)
-            tempScore = 35 * (1 - tempDeviation / 25); // Stricter penalty
+            tempScore = 40 * (1 - tempDeviation / 25);
         else if (tempDeviation <= 15)
-            tempScore = 35 * (1 - tempDeviation / 20); // Harsher for extreme temps
+            tempScore = 40 * (1 - tempDeviation / 20);
         else
-            tempScore = Math.Max(0, 35 * (1 - tempDeviation / 30)); // Very harsh for extreme
+            tempScore = Math.Max(0, 40 * (1 - tempDeviation / 30));
 
-        // 2. HUMIDITY: 25 points, optimal 50%
+        // 2. HUMIDITY: Temperature-dependent weighting
+        // At freezing temps, humidity matters less (people stay inside)
+        // At hot temps, humidity matters more (heat+humidity = miserable)
         double humidity = weather.Humidity;
+        double humidityWeight;
+        if (weather.Temperature < 5)
+            humidityWeight = 12; // Very cold: humidity less relevant
+        else if (weather.Temperature < 15)
+            humidityWeight = 18; // Cold: humidity less relevant
+        else if (weather.Temperature > 28)
+            humidityWeight = 28; // Hot: humidity very relevant
+        else
+            humidityWeight = 23; // Moderate: standard importance
+
         double humidityScore;
         if (humidity <= 30)
-            humidityScore = 25 * (0.8 + 0.2 * (humidity / 30));
+            humidityScore = humidityWeight * (0.8 + 0.2 * (humidity / 30));
         else if (humidity <= 70)
-            humidityScore = 25 * (1 - Math.Abs(humidity - 50) / 40);
+            humidityScore = humidityWeight * (1 - Math.Abs(humidity - 50) / 40);
         else
-            humidityScore = Math.Max(0, 25 * (1 - (humidity - 70) / 25)); // Harsher high humidity penalty
+            humidityScore = Math.Max(0, humidityWeight * (1 - (humidity - 70) / 25));
 
-        // 3. WIND: 20 points, context-dependent optimal
+        // 3. WIND: 15 points (reduced from 20)
         double windSpeed = weather.WindSpeed;
         double windScore;
-        // Cold weather: prefer less wind, hot weather: prefer more wind
         double tempAdjustedOptimal = weather.Temperature < 15 ? 1.0 : 4.0;
-        windScore = Math.Max(0, 20 * (1 - Math.Abs(windSpeed - tempAdjustedOptimal) / 8));
+        windScore = Math.Max(0, 15 * (1 - Math.Abs(windSpeed - tempAdjustedOptimal) / 8));
 
-        // 4. VISIBILITY: 10 points - CRITICAL for safety
-        double visibilityScore = weather.Visibility == 0 ? 0 : Math.Min(10, weather.Visibility);
+        // 4. VISIBILITY: 12 points (increased from 10)
+        double visibilityScore = weather.Visibility == 0 ? 0 : Math.Min(12, weather.Visibility * 1.2);
 
-        // 5. CLOUDS: 10 points, but penalize snow heavily
+        // 5. CLOUDS: 8 points (reduced from 10), less important than temperature
         double cloudScore = weather.WeatherDescription.ToLower().Contains("snow") ? 0 : 
-                           10 * (1 - Math.Abs(weather.CloudPercentage - 30) / 100);
+                           8 * (1 - Math.Abs(weather.CloudPercentage - 30) / 100);
 
         double totalScore = tempScore + humidityScore + windScore + visibilityScore + cloudScore;
         
-        // Extreme weather penalties
-        bool isFreezingHumid = weather.Temperature <= 2 && humidity > 90;
-        bool isHotHumid = weather.Temperature > 28 && humidity > 75;
+        // STRONG penalties for extreme conditions
+        bool isFreezing = weather.Temperature <= 0;
+        bool isVeryHot = weather.Temperature > 32;
         bool isSnowing = weather.WeatherDescription.ToLower().Contains("snow");
+        bool isHighWind = windSpeed > 10;
         
-        if (isFreezingHumid || isHotHumid) totalScore *= 0.7;
-        if (isSnowing) totalScore *= 0.6;
+        if (isFreezing) totalScore *= 0.65; // Freezing is VERY uncomfortable
+        if (isVeryHot) totalScore *= 0.70; // Extreme heat is very uncomfortable
+        if (isSnowing) totalScore *= 0.50; // Snow is dangerous and miserable
+        if (isHighWind && weather.Temperature < 10) totalScore *= 0.75; // Cold + windy is brutal
 
         return Math.Round(Math.Max(0, Math.Min(100, totalScore)), 1);
     }

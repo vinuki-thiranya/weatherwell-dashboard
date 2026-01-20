@@ -12,7 +12,9 @@ public class WeatherService : IWeatherService
     private readonly IMemoryCache _cache;
     private readonly string _apiKey;
     private readonly List<int> _cityCodes;
-    private const string CacheKey = "WeatherResults";
+    private const string AlgorithmVersion = "v2"; // Increment when comfort algorithm changes
+    private const string CacheKeyBase = "WeatherResults_";
+    private readonly string CacheKey = CacheKeyBase + AlgorithmVersion;
     private const string CacheStatusKey = "WeatherCacheStatus";
     
     public string LastCacheStatus 
