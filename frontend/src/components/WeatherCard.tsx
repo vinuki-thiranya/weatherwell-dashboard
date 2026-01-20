@@ -26,8 +26,8 @@ const WeatherCard: React.FC<Props> = ({ city }) => {
           <p className="text-sm font-medium text-slate-500 capitalize">{city.weatherDescription}</p>
         </div>
         <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl border ${getScoreColor(city.comfortScore)} transition-transform group-hover:scale-110`}>
+          <span className="text-[10px] font-semibold opacity-90">Score</span>
           <span className="text-lg font-black leading-none">{Math.round(city.comfortScore)}</span>
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Score</span>
         </div>
       </div>
 

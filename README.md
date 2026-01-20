@@ -4,6 +4,8 @@ A full-stack weather analytics application that retrieves real-time weather data
 
 Status: React 19 | .NET 9 | Auth0 | OpenWeatherMap
 
+Live Demo: [https://weatherwell-dashboard-186d.vercel.app/](https://weatherwell-dashboard-186d.vercel.app/)
+
 ## Core Features
 
 - Real-time weather data from OpenWeatherMap API
@@ -211,7 +213,7 @@ Use this to verify cache behavior during testing
 2. Create Machine-to-Machine app for resending email verification.:
    - Name: WeatherWell Backend
    - Scopes: read:users, create:user_tickets
-   
+
 
 ## API Endpoints
 

@@ -29,6 +29,7 @@ function App() {
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
 
   // Initialize dark mode
   useEffect(() => {
@@ -136,10 +137,10 @@ function App() {
 
   const filteredAndSortedData = getFilteredAndSortedData();
 
-  // Get top performing city for sidebar display
-  const topCity = weatherData.length > 0 ? weatherData.reduce((prev, current) => 
+  // Get selected city or default to top performing city for sidebar display
+  const selectedCity = weatherData.find(c => c.cityId === selectedCityId) || (weatherData.length > 0 ? weatherData.reduce((prev, current) => 
     (prev.comfortScore > current.comfortScore) ? prev : current
-  ) : null;
+  ) : null);
 
   const fetchData = async () => {
     if (!isAuthenticated) return;
@@ -232,7 +233,7 @@ function App() {
 
         {/* Sidebar */}
         {isAuthenticated && (
-          <aside className={`fixed left-0 top-0 z-40 w-80 bg-gradient-to-b from-sky-800/95 to-sky-500/30 dark:from-slate-950/95 dark:to-slate-900/95 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 p-8 flex flex-col justify-between min-h-screen transform transition-transform duration-300 lg:relative lg:z-auto lg:transform-none ${
+          <aside className={`fixed left-0 top-0 z-40 w-80 h-screen overflow-y-auto bg-gradient-to-b from-sky-800/95 to-sky-500/30 dark:from-slate-950/95 dark:to-slate-900/95 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 p-8 flex flex-col justify-between transform transition-transform duration-300 lg:relative lg:h-auto lg:overflow-visible lg:top-auto lg:left-auto lg:w-80 lg:translate-x-0 ${
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}>
             {/* Top Section */}
@@ -249,8 +250,8 @@ function App() {
                 </div>
               </div>
 
-              {/* Current Weather (Top City) */}
-              {topCity && (
+              {/* Current Weather (Selected City) */}
+              {selectedCity && (
                 <div className="mb-12">
                   <h2 className="text-white/80 text-sm font-semibold mb-2">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
@@ -258,30 +259,35 @@ function App() {
                   <p className="text-white/70 text-xs mb-6">
                     {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
+                  {selectedCity?.rank === 1 && (
+                    <div className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+                      Most Comfortable Place
+                    </div>
+                  )}
+                  <div className="text-6xl font-bold text-white mb-2">{selectedCity.temperature}°C</div>
                   
-                  <div className="text-6xl font-bold text-white mb-2">{topCity.temperature}°C</div>
                   <p className="text-white/90 text-sm flex items-center gap-2 mb-4">
                     <Cloud className="w-4 h-4" />
-                    {topCity.weatherDescription}
+                    {selectedCity.weatherDescription}
                   </p>
-                  <p className="text-white/80 text-lg font-semibold mb-6">{topCity.cityName}</p>
+                  <p className="text-white/80 text-lg font-semibold mb-6">{selectedCity.cityName}</p>
                   
                   <div className="bg-white/20 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 mb-6 border border-white/30 dark:border-white/20 shadow-lg">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-white/80 text-xs font-medium">Comfort Score</p>
-                        <p className="text-white text-2xl font-bold">{topCity.comfortScore}</p>
+                        <p className="text-white text-2xl font-bold">{selectedCity.comfortScore}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-white/80 text-xs font-medium">Rank</p>
-                        <p className="text-white text-2xl font-bold">#{topCity.rank}</p>
+                        <p className="text-white text-2xl font-bold">#{selectedCity.rank}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
                 {/* Quick Stats */}
-              {topCity && (
+              {selectedCity && (
                 <div>
                   <h3 className="text-white/80 text-xs font-semibold uppercase mb-4">Quick Stats</h3>
                   <div className="space-y-3">
@@ -290,7 +296,7 @@ function App() {
                         <Eye className="w-5 h-5 text-white/90" />
                         <div>
                           <p className="text-white/80 text-xs font-medium">Visibility</p>
-                          <p className="text-white text-sm font-semibold">{topCity.visibility} km</p>
+                          <p className="text-white text-sm font-semibold">{selectedCity.visibility} km</p>
                         </div>
                       </div>
                     </div>
@@ -299,7 +305,7 @@ function App() {
                         <Gauge className="w-5 h-5 text-white/90" />
                         <div>
                           <p className="text-white/80 text-xs font-medium">Pressure</p>
-                          <p className="text-white text-sm font-semibold">{topCity.pressure} hPa</p>
+                          <p className="text-white text-sm font-semibold">{selectedCity.pressure} hPa</p>
                         </div>
                       </div>
                     </div>
@@ -369,7 +375,7 @@ function App() {
                 <div className="relative z-10 w-full max-w-6xl px-4">
                   <div className="grid lg:grid-cols-2 gap-12 items-center">
                     {/* Left Column - Brand & Features */}
-                    <div className="space-y-10">
+                    <div className="space-y-10 pt-10 lg:pt-0">
                       <div className="space-y-6 ">
                         <div className="flex items-center gap-4">
                           
@@ -717,7 +723,12 @@ function App() {
                     {filteredAndSortedData.map((city) => (
                       <div
                         key={city.cityId}
-                        className="group flex flex-col p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/20 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 transition-all duration-300 hover:shadow-lg hover:border-blue-300/50 dark:hover:border-blue-700/50 overflow-hidden"
+                        onClick={() => setSelectedCityId(selectedCityId === city.cityId ? null : city.cityId)}
+                        className={`group flex flex-col p-3 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                          selectedCityId === city.cityId 
+                            ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-300 shadow-lg' 
+                            : 'border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/20 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 hover:shadow-md'
+                        }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -741,9 +752,12 @@ function App() {
 
                           <div className="flex items-center gap-4">
                             <div className="text-right flex-shrink-0">
-                              <p className="font-bold text-slate-900 dark:text-white">
-                                {Math.round(city.temperature)}°C
-                              </p>
+                              <div className="flex items-center gap-1">
+                                <p className="font-bold text-slate-900 dark:text-white">
+                                  {Math.round(city.temperature)}°C
+                                </p>
+                                <ArrowRight size={12} className={`text-slate-400 transition-transform duration-300 lg:hidden ${selectedCityId === city.cityId ? 'rotate-90' : ''}`} />
+                              </div>
                               <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
                                 Temp
                               </p>
@@ -755,15 +769,18 @@ function App() {
                               city.comfortScore >= 40 ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20' :
                               'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
                             }`}>
+                              <span className="text-xs font-semibold opacity-90 mr-2">Score</span>
                               <span>{city.comfortScore}</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Expandable Details on Hover */}
-                        <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500 ease-in-out">
+                        {/* Details (Expanded on Click or Hover) */}
+                        <div className={`grid transition-all duration-500 ease-in-out ${
+                          selectedCityId === city.cityId ? 'grid-rows-[1fr] mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50' : 'grid-rows-[0fr] group-hover:grid-rows-[1fr] lg:group-hover:mt-3 lg:group-hover:pt-3 lg:group-hover:border-t lg:group-hover:border-slate-200/50 lg:group-hover:dark:border-slate-700/50'
+                        }`}>
                           <div className="overflow-hidden">
-                            <div className="mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               {/* Detail metrics */}
                               <div className="bg-slate-50 dark:bg-slate-800/40 p-2 rounded-lg border border-slate-100 dark:border-slate-700 transition-colors">
                                 <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">Humidity</p>

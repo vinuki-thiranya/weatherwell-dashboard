@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WeatherWell.Services;
+using DotNetEnv;
+
+Env.Load(); // Load environment variables from .env
 
 var builder = WebApplication.CreateBuilder(args);
 
