@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WeatherWell.Services;
-using DotNetEnv;
-
-Env.Load(); // Load environment variables from .env
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +17,12 @@ builder.Services.AddScoped<IAuth0Service, Auth0Service>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy => policy.WithOrigins(
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "https://weatherwell-dashboard.vercel.app",
+                        "https://*.vercel.app"
+                    )
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
